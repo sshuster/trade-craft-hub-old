@@ -46,14 +46,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (foundUser) {
         setUser(foundUser);
         localStorage.setItem('user', JSON.stringify(foundUser));
-        toast({
-          title: "Login Successful",
+        toast("Login Successful", {
           description: `Welcome back, ${foundUser.username}!`,
         });
         return true;
       } else {
-        toast({
-          title: "Login Failed",
+        toast("Login Failed", {
           description: "Invalid username or password",
           variant: "destructive"
         });
@@ -61,8 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast({
-        title: "Login Failed",
+      toast("Login Failed", {
         description: "An error occurred during login",
         variant: "destructive"
       });
@@ -75,8 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    toast({
-      title: "Logged Out",
+    toast("Logged Out", {
       description: "You have been successfully logged out",
     });
   };
@@ -88,8 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userExists = mockUsers.some((u) => u.username === username);
       
       if (userExists) {
-        toast({
-          title: "Registration Failed",
+        toast("Registration Failed", {
           description: "Username already exists",
           variant: "destructive"
         });
@@ -112,16 +107,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
       
-      toast({
-        title: "Registration Successful",
+      toast("Registration Successful", {
         description: "Your account has been created",
       });
       
       return true;
     } catch (error) {
       console.error('Registration error:', error);
-      toast({
-        title: "Registration Failed",
+      toast("Registration Failed", {
         description: "An error occurred during registration",
         variant: "destructive"
       });
