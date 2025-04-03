@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         toast("Login Failed", {
           description: "Invalid username or password",
-          variant: "destructive"
+          style: { backgroundColor: 'rgb(239, 68, 68)', color: 'white' }
         });
         return false;
       }
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Login error:', error);
       toast("Login Failed", {
         description: "An error occurred during login",
-        variant: "destructive"
+        style: { backgroundColor: 'rgb(239, 68, 68)', color: 'white' }
       });
       return false;
     } finally {
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (userExists) {
         toast("Registration Failed", {
           description: "Username already exists",
-          variant: "destructive"
+          style: { backgroundColor: 'rgb(239, 68, 68)', color: 'white' }
         });
         return false;
       }
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Registration error:', error);
       toast("Registration Failed", {
         description: "An error occurred during registration",
-        variant: "destructive"
+        style: { backgroundColor: 'rgb(239, 68, 68)', color: 'white' }
       });
       return false;
     } finally {
