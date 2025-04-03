@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -12,7 +11,7 @@ import { Item, User, mockUsers } from '@/lib/data';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 // Define chart data interfaces
 interface ChartData {
@@ -30,14 +29,14 @@ const allUsers: User[] = mockUsers;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [users, setUsers] = useState<User[]>(allUsers);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is authenticated and is an admin
-    if (!isAuthenticated) {
+    if (!user) {
       navigate('/login');
       return;
     }
@@ -65,7 +64,7 @@ const AdminDashboard = () => {
     };
     
     fetchItems();
-  }, [isAuthenticated, user, navigate]);
+  }, [user, navigate]);
 
   // Generate pie chart data for item conditions
   const generateConditionData = (): ChartData[] => {

@@ -18,9 +18,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { categories } from '@/lib/data';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
-// Define chart data interface
 interface ChartData {
   name: string;
   count: number;
@@ -28,7 +27,7 @@ interface ChartData {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [newItem, setNewItem] = useState({
@@ -41,13 +40,11 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated) {
+    if (!user) {
       navigate('/login');
       return;
     }
 
-    // Fetch items from API
     const fetchItems = async () => {
       if (!user) return;
       try {
@@ -66,9 +63,8 @@ const Dashboard = () => {
     };
 
     fetchItems();
-  }, [isAuthenticated, user, navigate]);
+  }, [user, navigate]);
 
-  // Generate items chart data
   const generateCategoryData = (items: Item[]): ChartData[] => {
     const categoryCount: Record<string, number> = {};
     
@@ -86,7 +82,6 @@ const Dashboard = () => {
     }));
   };
 
-  // Define column definitions with the correct typing
   const columnDefs: ColDef<Item>[] = [
     { headerName: "Title", field: "title" as keyof Item, sortable: true, filter: true },
     { headerName: "Category", field: "category" as keyof Item, sortable: true, filter: true },
@@ -156,7 +151,6 @@ const Dashboard = () => {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
         
-        {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
@@ -213,7 +207,6 @@ const Dashboard = () => {
           </Card>
         </TabsContent>
         
-        {/* Listings Tab */}
         <TabsContent value="listings" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">My Items</h2>
@@ -352,7 +345,6 @@ const Dashboard = () => {
           </div>
         </TabsContent>
         
-        {/* Analytics Tab */}
         <TabsContent value="analytics" className="space-y-4">
           <Card>
             <CardHeader>

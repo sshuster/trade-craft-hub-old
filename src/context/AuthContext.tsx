@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { mockUsers, User } from '../lib/data';
-import { toast } from "../hooks/use-toast";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
