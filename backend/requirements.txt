@@ -1,3 +1,5 @@
 
 Flask==2.2.3
 Flask-Cors==3.0.10
+SQLite3==2.6.0
+
