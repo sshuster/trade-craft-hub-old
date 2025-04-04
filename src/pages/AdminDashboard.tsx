@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -12,6 +13,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import { LogOut, UserX, Trash2 } from 'lucide-react';
 
 // Define chart data interfaces
 interface ChartData {
@@ -29,7 +31,7 @@ const allUsers: User[] = mockUsers;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [items, setItems] = useState<Item[]>([]);
   const [users, setUsers] = useState<User[]>(allUsers);
   const [loading, setLoading] = useState(true);
@@ -131,6 +133,43 @@ const AdminDashboard = () => {
     }
   };
 
+  // Handler to delete a user
+  const handleDeleteUser = async (userId: string) => {
+    // Only for demo - in a real app this would call an API
+    try {
+      // In a real app, you would make an API call like:
+      // const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      //   method: 'DELETE',
+      //   headers: {
+      //     'User-Id': user?.id || '',
+      //     'User-Role': 'admin'
+      //   }
+      // });
+      
+      // For mock implementation:
+      if (userId === user?.id) {
+        toast.error("You cannot delete your own account");
+        return;
+      }
+      
+      // Remove user from local state
+      setUsers(users.filter(u => u.id !== userId));
+      
+      // Also remove any items associated with this user
+      setItems(items.filter(item => item.userId !== userId));
+      
+      toast.success('User deleted successfully');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Failed to delete user');
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   // Define item columns with proper typing
   const itemColumnDefs: ColDef<Item>[] = [
     { headerName: "Title", field: "title" as keyof Item, sortable: true, filter: true },
@@ -174,7 +213,38 @@ const AdminDashboard = () => {
     { headerName: "Username", field: "username" as keyof User, sortable: true, filter: true },
     { headerName: "Email", field: "email" as keyof User, sortable: true, filter: true },
     { headerName: "Role", field: "role" as keyof User, sortable: true, filter: true, width: 100 },
-    { headerName: "Created At", field: "createdAt" as keyof User, sortable: true, filter: true }
+    { headerName: "Created At", field: "createdAt" as keyof User, sortable: true, filter: true },
+    {
+      headerName: "Actions",
+      field: "id" as keyof User,
+      sortable: false,
+      filter: false,
+      width: 120,
+      cellRenderer: (params: any) => (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm" disabled={params.value === user?.id}>
+              <UserX size={16} className="mr-1" />
+              Remove
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete this user account and all associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleDeleteUser(params.value)}>
+                Delete User
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )
+    }
   ];
 
   if (loading) {
@@ -183,7 +253,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Administrator Dashboard</h1>
+        <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+          <LogOut size={16} />
+          Logout
+        </Button>
+      </div>
       
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
