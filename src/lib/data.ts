@@ -24,7 +24,12 @@ export interface MusicItem {
   images: string[];
   createdAt: string;
   updatedAt: string;
+  category?: string; // Adding this for backward compatibility
+  condition?: string; // Adding this for backward compatibility
 }
+
+// Alias MusicItem as Item for backward compatibility
+export type Item = MusicItem;
 
 // Mock users
 export const mockUsers: User[] = [
@@ -78,7 +83,19 @@ export const moods = [
   'Intense',
 ];
 
-// Mock music items
+// Categories (using genres as categories for simplicity)
+export const categories = genres;
+
+// Conditions for items
+export const conditions = [
+  'new',
+  'like new',
+  'good',
+  'fair',
+  'poor'
+];
+
+// Mock music items with added category and condition fields
 export const mockItems: MusicItem[] = [
   {
     id: uuidv4(),
@@ -94,6 +111,8 @@ export const mockItems: MusicItem[] = [
     images: ['/placeholder.svg'],
     createdAt: '2023-05-15T14:22:00Z',
     updatedAt: '2023-05-15T14:22:00Z',
+    category: 'Pop',
+    condition: 'new'
   },
   {
     id: uuidv4(),
@@ -109,6 +128,8 @@ export const mockItems: MusicItem[] = [
     images: ['/placeholder.svg'],
     createdAt: '2023-06-22T09:15:00Z',
     updatedAt: '2023-06-22T09:15:00Z',
+    category: 'Hip Hop',
+    condition: 'like new'
   },
   {
     id: uuidv4(),
@@ -124,6 +145,8 @@ export const mockItems: MusicItem[] = [
     images: ['/placeholder.svg'],
     createdAt: '2023-07-05T16:40:00Z',
     updatedAt: '2023-07-05T16:40:00Z',
+    category: 'Soundtrack',
+    condition: 'new'
   },
   {
     id: uuidv4(),
@@ -139,6 +162,8 @@ export const mockItems: MusicItem[] = [
     images: ['/placeholder.svg'],
     createdAt: '2023-08-12T11:30:00Z',
     updatedAt: '2023-08-12T11:30:00Z',
+    category: 'Ambient',
+    condition: 'good'
   },
   {
     id: uuidv4(),
@@ -154,6 +179,8 @@ export const mockItems: MusicItem[] = [
     images: ['/placeholder.svg'],
     createdAt: '2023-09-03T08:50:00Z',
     updatedAt: '2023-09-03T08:50:00Z',
+    category: 'Electronic',
+    condition: 'new'
   },
   {
     id: uuidv4(),
@@ -169,6 +196,8 @@ export const mockItems: MusicItem[] = [
     images: ['/placeholder.svg'],
     createdAt: '2023-10-18T13:25:00Z',
     updatedAt: '2023-10-18T13:25:00Z',
+    category: 'Jazz',
+    condition: 'like new'
   },
 ];
 
