@@ -50,7 +50,7 @@ const Login = () => {
           <CardHeader>
             <CardTitle className="text-2xl text-center">Login</CardTitle>
             <CardDescription className="text-center">
-              Enter your credentials to access your account
+              Enter your credentials to access your music dashboard
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
@@ -76,6 +76,11 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-500">Demo accounts:</p>
+                <p className="text-xs text-gray-500">User: muser / Password: muser</p>
+                <p className="text-xs text-gray-500">Admin: mvc / Password: mvc</p>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-2">

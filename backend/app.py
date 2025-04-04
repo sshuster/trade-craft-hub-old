@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Database configuration
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'marketplace.db')
+DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'music_marketplace.db')
 
 # Helper functions for database connection
 def get_db():
@@ -44,16 +44,18 @@ def init_db():
     )
     ''')
     
-    # Create items table
+    # Create music items table
     cursor.execute('''
-    CREATE TABLE IF NOT EXISTS items (
+    CREATE TABLE IF NOT EXISTS music_items (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
         title TEXT NOT NULL,
         description TEXT NOT NULL,
         price REAL NOT NULL,
-        category TEXT NOT NULL,
-        condition TEXT NOT NULL,
+        genre TEXT NOT NULL,
+        tempo TEXT NOT NULL,
+        mood TEXT NOT NULL,
+        music_url TEXT NOT NULL,
         location TEXT NOT NULL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
@@ -61,13 +63,13 @@ def init_db():
     )
     ''')
     
-    # Create images table (for item images)
+    # Create images table (for music cover images)
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS images (
         id TEXT PRIMARY KEY,
         item_id TEXT NOT NULL,
         url TEXT NOT NULL,
-        FOREIGN KEY (item_id) REFERENCES items (id)
+        FOREIGN KEY (item_id) REFERENCES music_items (id)
     )
     ''')
     
@@ -180,16 +182,43 @@ def login():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/items', methods=['GET'])
-def get_items():
+@app.route('/api/music', methods=['GET'])
+def get_music_items():
+    # Get search parameters
+    search_query = request.args.get('q', '').lower()
+    genre = request.args.get('genre', '')
+    tempo = request.args.get('tempo', '')
+    mood = request.args.get('mood', '')
+    
     try:
         db = get_db()
-        cursor = db.execute('''
-            SELECT i.*, u.username as seller_username 
-            FROM items i
-            JOIN users u ON i.user_id = u.id
-            ORDER BY i.created_at DESC
-        ''')
+        query = '''
+            SELECT m.*, u.username as seller_username 
+            FROM music_items m
+            JOIN users u ON m.user_id = u.id
+            WHERE 1=1
+        '''
+        params = []
+        
+        if search_query:
+            query += " AND (LOWER(m.title) LIKE ? OR LOWER(m.description) LIKE ?)"
+            params.extend([f'%{search_query}%', f'%{search_query}%'])
+        
+        if genre:
+            query += " AND m.genre = ?"
+            params.append(genre)
+            
+        if tempo:
+            query += " AND m.tempo = ?"
+            params.append(tempo)
+            
+        if mood:
+            query += " AND m.mood = ?"
+            params.append(mood)
+            
+        query += " ORDER BY m.created_at DESC"
+        
+        cursor = db.execute(query, params)
         items = cursor.fetchall()
         
         # Get images for each item
@@ -208,31 +237,33 @@ def get_items():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/items', methods=['POST'])
-def create_item():
+@app.route('/api/music', methods=['POST'])
+def create_music_item():
     data = request.json
     user_id = data.get('user_id')
     title = data.get('title')
     description = data.get('description')
     price = data.get('price')
-    category = data.get('category')
-    condition = data.get('condition')
+    genre = data.get('genre')
+    tempo = data.get('tempo')
+    mood = data.get('mood')
+    music_url = data.get('music_url')
     location = data.get('location')
     image_urls = data.get('images', [])
     
-    if not all([user_id, title, description, price, category, condition, location]):
+    if not all([user_id, title, description, price, genre, tempo, mood, music_url, location]):
         return jsonify({'error': 'Missing required fields'}), 400
     
     try:
         db = get_db()
-        # Create new item
+        # Create new music item
         item_id = str(uuid.uuid4())
         now = datetime.now().isoformat()
         
         db.execute('''
-            INSERT INTO items (id, user_id, title, description, price, category, condition, location, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (item_id, user_id, title, description, price, category, condition, location, now, now))
+            INSERT INTO music_items (id, user_id, title, description, price, genre, tempo, mood, music_url, location, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (item_id, user_id, title, description, price, genre, tempo, mood, music_url, location, now, now))
         
         # Add images if provided
         for url in image_urls:
@@ -249,8 +280,10 @@ def create_item():
             'title': title,
             'description': description,
             'price': price,
-            'category': category,
-            'condition': condition,
+            'genre': genre,
+            'tempo': tempo,
+            'mood': mood,
+            'music_url': music_url,
             'location': location,
             'created_at': now,
             'updated_at': now,
@@ -259,20 +292,20 @@ def create_item():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/items/<item_id>', methods=['GET'])
-def get_item(item_id):
+@app.route('/api/music/<item_id>', methods=['GET'])
+def get_music_item(item_id):
     try:
         db = get_db()
         cursor = db.execute('''
-            SELECT i.*, u.username as seller_username 
-            FROM items i
-            JOIN users u ON i.user_id = u.id
-            WHERE i.id = ?
+            SELECT m.*, u.username as seller_username 
+            FROM music_items m
+            JOIN users u ON m.user_id = u.id
+            WHERE m.id = ?
         ''', (item_id,))
         item = cursor.fetchone()
         
         if not item:
-            return jsonify({'error': 'Item not found'}), 404
+            return jsonify({'error': 'Music track not found'}), 404
             
         item_dict = dict(item)
         
@@ -285,8 +318,8 @@ def get_item(item_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/items/<item_id>', methods=['DELETE'])
-def delete_item(item_id):
+@app.route('/api/music/<item_id>', methods=['DELETE'])
+def delete_music_item(item_id):
     user_id = request.headers.get('User-Id')
     user_role = request.headers.get('User-Role')
     
@@ -296,35 +329,35 @@ def delete_item(item_id):
     try:
         db = get_db()
         # Get item to check ownership
-        cursor = db.execute('SELECT user_id FROM items WHERE id = ?', (item_id,))
+        cursor = db.execute('SELECT user_id FROM music_items WHERE id = ?', (item_id,))
         item = cursor.fetchone()
         
         if not item:
-            return jsonify({'error': 'Item not found'}), 404
+            return jsonify({'error': 'Music track not found'}), 404
             
         # Check if user is owner or admin
         if item['user_id'] != user_id and user_role != 'admin':
-            return jsonify({'error': 'Not authorized to delete this item'}), 403
+            return jsonify({'error': 'Not authorized to delete this track'}), 403
             
         # Delete images first (foreign key constraint)
         db.execute('DELETE FROM images WHERE item_id = ?', (item_id,))
         # Delete item
-        db.execute('DELETE FROM items WHERE id = ?', (item_id,))
+        db.execute('DELETE FROM music_items WHERE id = ?', (item_id,))
         db.commit()
         
-        return jsonify({'message': 'Item deleted successfully'}), 200
+        return jsonify({'message': 'Music track deleted successfully'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/users/<user_id>/items', methods=['GET'])
-def get_user_items(user_id):
+@app.route('/api/users/<user_id>/music', methods=['GET'])
+def get_user_music_items(user_id):
     try:
         db = get_db()
         cursor = db.execute('''
-            SELECT i.* 
-            FROM items i
-            WHERE i.user_id = ?
-            ORDER BY i.created_at DESC
+            SELECT m.* 
+            FROM music_items m
+            WHERE m.user_id = ?
+            ORDER BY m.created_at DESC
         ''', (user_id,))
         items = cursor.fetchall()
         

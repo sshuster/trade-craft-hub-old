@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef } from 'ag-grid-community';
-import { Item, User, mockUsers } from '@/lib/data';
+import { MusicItem, User, mockUsers } from '@/lib/data';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -21,7 +21,7 @@ interface ChartData {
   value: number;
 }
 
-interface CategoryData {
+interface GenreData {
   name: string;
   count: number;
 }
@@ -32,7 +32,7 @@ const allUsers: User[] = mockUsers;
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<MusicItem[]>([]);
   const [users, setUsers] = useState<User[]>(allUsers);
   const [loading, setLoading] = useState(true);
 
@@ -48,18 +48,18 @@ const AdminDashboard = () => {
       return;
     }
     
-    // Fetch items from API
+    // Fetch music items from API
     const fetchItems = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/items');
+        const response = await fetch('http://localhost:5000/api/music');
         if (response.ok) {
           const data = await response.json();
           setItems(data);
         } else {
-          console.error('Failed to fetch items');
+          console.error('Failed to fetch music items');
         }
       } catch (error) {
-        console.error('Error fetching items:', error);
+        console.error('Error fetching music items:', error);
       } finally {
         setLoading(false);
       }
@@ -68,51 +68,49 @@ const AdminDashboard = () => {
     fetchItems();
   }, [user, navigate]);
 
-  // Generate pie chart data for item conditions
-  const generateConditionData = (): ChartData[] => {
-    const conditionCount: Record<string, number> = {
-      'new': 0,
-      'like new': 0,
-      'good': 0,
-      'fair': 0,
-      'poor': 0
+  // Generate pie chart data for music tempos
+  const generateTempoData = (): ChartData[] => {
+    const tempoCount: Record<string, number> = {
+      'slow': 0,
+      'medium': 0,
+      'fast': 0
     };
     
     items.forEach(item => {
-      conditionCount[item.condition]++;
+      tempoCount[item.tempo]++;
     });
     
-    return Object.keys(conditionCount).map(condition => ({
-      name: condition,
-      value: conditionCount[condition]
+    return Object.keys(tempoCount).map(tempo => ({
+      name: tempo,
+      value: tempoCount[tempo]
     }));
   };
   
-  // Generate bar chart data for item categories
-  const generateCategoryData = (): CategoryData[] => {
-    const categoryCount: Record<string, number> = {};
+  // Generate bar chart data for music genres
+  const generateGenreData = (): GenreData[] => {
+    const genreCount: Record<string, number> = {};
     
     items.forEach(item => {
-      if (categoryCount[item.category]) {
-        categoryCount[item.category]++;
+      if (genreCount[item.genre]) {
+        genreCount[item.genre]++;
       } else {
-        categoryCount[item.category] = 1;
+        genreCount[item.genre] = 1;
       }
     });
     
-    return Object.keys(categoryCount).map(category => ({
-      name: category,
-      count: categoryCount[category]
+    return Object.keys(genreCount).map(genre => ({
+      name: genre,
+      count: genreCount[genre]
     }));
   };
   
   // Colors for pie chart
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-  // Handler to delete an item
+  // Handler to delete a music item
   const handleDeleteItem = async (itemId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/items/${itemId}`, {
+      const response = await fetch(`http://localhost:5000/api/music/${itemId}`, {
         method: 'DELETE',
         headers: {
           'User-Id': user?.id || '',
@@ -122,14 +120,14 @@ const AdminDashboard = () => {
       
       if (response.ok) {
         setItems(items.filter(item => item.id !== itemId));
-        toast.success('Item deleted successfully');
+        toast.success('Music track deleted successfully');
       } else {
         const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to delete item');
+        toast.error(errorData.error || 'Failed to delete music track');
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
-      toast.error('Failed to delete item due to an error');
+      console.error('Error deleting music track:', error);
+      toast.error('Failed to delete music track due to an error');
     }
   };
 
@@ -171,16 +169,31 @@ const AdminDashboard = () => {
   };
 
   // Define item columns with proper typing
-  const itemColumnDefs: ColDef<Item>[] = [
-    { headerName: "Title", field: "title" as keyof Item, sortable: true, filter: true },
-    { headerName: "Category", field: "category" as keyof Item, sortable: true, filter: true },
-    { headerName: "Price", field: "price" as keyof Item, sortable: true, filter: true, width: 100 },
-    { headerName: "Condition", field: "condition" as keyof Item, sortable: true, filter: true },
-    { headerName: "Location", field: "location" as keyof Item, sortable: true, filter: true },
-    { headerName: "Seller", field: "seller_username" as keyof Item, sortable: true, filter: true },
+  const itemColumnDefs: ColDef<MusicItem>[] = [
+    { headerName: "Title", field: "title" as keyof MusicItem, sortable: true, filter: true },
+    { headerName: "Genre", field: "genre" as keyof MusicItem, sortable: true, filter: true },
+    { headerName: "Tempo", field: "tempo" as keyof MusicItem, sortable: true, filter: true },
+    { headerName: "Mood", field: "mood" as keyof MusicItem, sortable: true, filter: true },
+    { headerName: "Price", field: "price" as keyof MusicItem, sortable: true, filter: true, width: 100 },
+    { headerName: "Musician", field: "seller_username" as keyof MusicItem, sortable: true, filter: true },
+    { 
+      headerName: "Music URL", 
+      field: "music_url" as keyof MusicItem,
+      width: 120,
+      cellRenderer: (params: any) => (
+        <a 
+          href={params.value} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-blue-600 hover:underline"
+        >
+          Listen
+        </a>
+      )
+    },
     {
       headerName: "Actions",
-      field: "id" as keyof Item,
+      field: "id" as keyof MusicItem,
       sortable: false,
       filter: false,
       width: 120,
@@ -193,7 +206,7 @@ const AdminDashboard = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete this listing.
+                This action cannot be undone. This will permanently delete this music track.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -264,7 +277,7 @@ const AdminDashboard = () => {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="items">Manage Items</TabsTrigger>
+          <TabsTrigger value="music">Manage Music</TabsTrigger>
           <TabsTrigger value="users">Manage Users</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -274,8 +287,8 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Total Items</CardTitle>
-                <CardDescription>All items on the platform</CardDescription>
+                <CardTitle>Total Music Tracks</CardTitle>
+                <CardDescription>All music on the platform</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{items.length}</p>
@@ -285,7 +298,7 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Total Users</CardTitle>
-                <CardDescription>Registered users</CardDescription>
+                <CardDescription>Registered musicians</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{users.length}</p>
@@ -295,7 +308,7 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>New Today</CardTitle>
-                <CardDescription>Today's new listings</CardDescription>
+                <CardDescription>Today's new tracks</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
@@ -314,12 +327,12 @@ const AdminDashboard = () => {
           </div>
         </TabsContent>
         
-        {/* Items Tab */}
-        <TabsContent value="items" className="space-y-4">
+        {/* Music Tab */}
+        <TabsContent value="music" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>All Items</CardTitle>
-              <CardDescription>Manage all items on the platform</CardDescription>
+              <CardTitle>All Music</CardTitle>
+              <CardDescription>Manage all music tracks on the platform</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="ag-theme-alpine" style={{ height: 500, width: '100%' }}>
@@ -340,7 +353,7 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle>All Users</CardTitle>
-              <CardDescription>Manage user accounts</CardDescription>
+              <CardDescription>Manage musician accounts</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
@@ -361,13 +374,13 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Items by Category</CardTitle>
-                <CardDescription>Distribution of items across categories</CardDescription>
+                <CardTitle>Music by Genre</CardTitle>
+                <CardDescription>Distribution of music across genres</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart
-                    data={generateCategoryData()}
+                    data={generateGenreData()}
                     margin={{
                       top: 20,
                       right: 30,
@@ -380,7 +393,7 @@ const AdminDashboard = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="count" fill="#16A34A" />
+                    <Bar dataKey="count" fill="#8B5CF6" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -388,14 +401,14 @@ const AdminDashboard = () => {
             
             <Card>
               <CardHeader>
-                <CardTitle>Items by Condition</CardTitle>
-                <CardDescription>Distribution of items by condition</CardDescription>
+                <CardTitle>Music by Tempo</CardTitle>
+                <CardDescription>Distribution of music by tempo</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={generateConditionData()}
+                      data={generateTempoData()}
                       cx="50%"
                       cy="50%"
                       labelLine={true}
@@ -403,11 +416,11 @@ const AdminDashboard = () => {
                       outerRadius={80}
                       dataKey="value"
                     >
-                      {generateConditionData().map((entry, index) => (
+                      {generateTempoData().map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`${value} items`, 'Count']} />
+                    <Tooltip formatter={(value) => [`${value} tracks`, 'Count']} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
